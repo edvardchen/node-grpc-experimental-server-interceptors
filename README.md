@@ -1,1 +1,1 @@
-# gRPC experimental interceptors for Node.js
+# gRPC experimental server interceptors for Node.js

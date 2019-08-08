@@ -1,7 +1,7 @@
 {
-  "name": "grpc-experimental-interceptors",
+  "name": "grpc-server-interceptors",
   "version": "1.0.0",
-  "description": "gRPC experimental interceptors for Node.js",
+  "description": "gRPC experimental server interceptors for Node.js",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "npm run build",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/edvardchen/node-grpc-experimental-interceptors.git"
+    "url": "git+https://github.com/edvardchen/node-grpc-experimental-server-interceptors.git"
   },
   "keywords": [
     "grpc",
@@ -22,9 +22,9 @@
   "author": "edvardchen",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/edvardchen/node-grpc-experimental-interceptors/issues"
+    "url": "https://github.com/edvardchen/node-grpc-experimental-server-interceptors/issues"
   },
-  "homepage": "https://github.com/edvardchen/node-grpc-experimental-interceptors#readme",
+  "homepage": "https://github.com/edvardchen/node-grpc-experimental-server-interceptors#readme",
   "dependencies": {
     "grpc": "^1.22.2"
   },

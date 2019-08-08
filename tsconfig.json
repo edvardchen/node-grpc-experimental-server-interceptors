@@ -3,10 +3,9 @@
     "target": "esnext",
     "module": "commonjs",
     "lib": ["es2018", "dom"],
-
     "declaration": true,
-
     "sourceMap": true,
+    "outDir": "lib",
     "strict": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
@@ -15,10 +14,11 @@
     "resolveJsonModule": true,
     "allowUnreachableCode": false,
     "preserveWatchOutput": true,
-    "types": ["node"],
+    "types": ["node", "jest"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
-  }
+  },
+  "include": ["src"]
 }

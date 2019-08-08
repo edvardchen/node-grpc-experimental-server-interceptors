@@ -6,7 +6,7 @@
   "scripts": {
     "prepublish": "npm run build",
     "build": "tsc",
-    "lint": "eslint src && tsc --noEmit",
+    "lint": "eslint {src,__tests__}/ --ext ts && tsc --noEmit",
     "pretest": "npm run lint",
     "test": "jest"
   },

@@ -7,6 +7,7 @@ import {
   MethodDefinition,
 } from 'grpc';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Next = (error?: Error) => Promise<any>;
 
 export type Context = {

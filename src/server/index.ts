@@ -66,10 +66,11 @@ export default class ExperimentalServer extends Server {
       if (!first) {
         // no interceptors
         // @ts-ignore
-        return original(call, grpcCallback);
+        original(call, grpcCallback);
+        return;
       }
 
-      first(ctx, async function next() {
+      first(ctx, function next() {
         const { done, value } = interceptors.next();
         if (done) {
           // unary call
@@ -92,7 +93,8 @@ export default class ExperimentalServer extends Server {
           }
 
           // @ts-ignore
-          return original(call);
+          original(call);
+          return;
         }
         // run another interceptor
         return value(ctx, next);

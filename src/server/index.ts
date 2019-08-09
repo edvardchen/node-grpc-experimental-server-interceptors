@@ -5,20 +5,29 @@ import {
   sendUnaryData,
   handleCall,
   MethodDefinition,
+  ServerReadableStream,
+  ServerDuplexStream,
+  ServerUnaryCall,
 } from 'grpc';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Next = (error?: Error) => Promise<any>;
 
+type ServerCall =
+  | ServerUnaryCall<unknown>
+  | ServerReadableStream<unknown>
+  | ServerReadableStream<unknown>
+  | ServerDuplexStream<unknown, unknown>;
+
 export type Context = {
-  call: unknown;
+  call: ServerCall;
   definition: MethodDefinition<unknown, unknown>;
 };
 
 export type Interceptor = (ctx: Context, next: Next) => void;
 
 export default class ExperimentalServer extends Server {
-  interceptors: Interceptor[] = [];
+  protected interceptors: Interceptor[] = [];
 
   // @ts-ignore
   addService<ImplementationType extends UntypedServiceImplementation>(
@@ -48,7 +57,7 @@ export default class ExperimentalServer extends Server {
     original: handleCall<unknown, unknown>,
     definition: MethodDefinition<unknown, unknown>
   ) {
-    return (call: unknown, grpcCallback: unknown): void => {
+    return (call: ServerCall, grpcCallback: unknown): void => {
       const ctx: Context = { call, definition };
       const interceptors = this.intercept();
 
@@ -95,7 +104,7 @@ export default class ExperimentalServer extends Server {
     this.interceptors.push(fn);
   }
 
-  *intercept(): Generator {
+  protected *intercept(): Generator {
     let i = 0;
     while (i < this.interceptors.length) {
       yield this.interceptors[i];

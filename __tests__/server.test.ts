@@ -1,74 +1,9 @@
-import ExperimentalServer, { Interceptor } from '../src/server';
-import {
-  RouteGuideService,
-  RouteGuideClient,
-} from './fixtures/static_codegen/route_guide_grpc_pb';
+import { Interceptor } from '../src/server';
 
-import {
-  ServerCredentials,
-  Client,
-  credentials,
-  UntypedServiceImplementation,
-  handleUnaryCall,
-  ServiceError,
-  status,
-} from 'grpc';
+import { handleUnaryCall, ServiceError, status } from 'grpc';
 import { Point, Feature } from './fixtures/static_codegen/route_guide_pb';
-import getFeature from './fixtures/RouteGuide/getFeature';
-import recordRoute from './fixtures/RouteGuide/recordRoute';
-import routeChat from './fixtures/RouteGuide/routeChat';
-import listFeatures from './fixtures/RouteGuide/listFeatures';
 
-function runTest({
-  implementations,
-  testcase,
-}: {
-  implementations: UntypedServiceImplementation;
-  testcase: (
-    getServer: () => ExperimentalServer,
-    getClient: () => Client
-  ) => void;
-}): void {
-  let server: ExperimentalServer;
-  let client: Client;
-  beforeAll(done => {
-    const port = Math.floor(Math.random() * 1e4);
-    console.log(port);
-    server = new ExperimentalServer();
-
-    server.addService(RouteGuideService, {
-      getFeature,
-      recordRoute,
-      listFeatures,
-      routeChat,
-      ...implementations,
-    });
-
-    server.bindAsync(
-      `0.0.0.0:${port}`,
-      ServerCredentials.createInsecure(),
-      error => {
-        if (error) {
-          return done(error);
-        }
-        server.start();
-
-        client = new RouteGuideClient(
-          `0.0.0.0:${port}`,
-          credentials.createInsecure()
-        );
-
-        done();
-      }
-    );
-  });
-
-  afterAll(done => {
-    server.tryShutdown(done);
-  });
-
-  testcase(() => server, () => client);
-}
+import runTest from './helpers/runTest';
 
 describe('server', () => {
   describe('pass through', () => {

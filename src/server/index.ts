@@ -1,4 +1,6 @@
+import compose from 'koa-compose';
 import {
+  Metadata,
   Server,
   UntypedServiceImplementation,
   ServiceDefinition,
@@ -6,28 +8,45 @@ import {
   handleCall,
   MethodDefinition,
   ServerReadableStream,
+  ServerWriteableStream,
   ServerDuplexStream,
   ServerUnaryCall,
 } from 'grpc';
+import { EventEmitter } from 'events';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Next = (error?: Error) => Promise<any>;
 
 type ServerCall =
-  | ServerUnaryCall<unknown>
-  | ServerReadableStream<unknown>
-  | ServerReadableStream<unknown>
+  | ServerNonStreamCall
+  | ServerWriteableStream<unknown>
   | ServerDuplexStream<unknown, unknown>;
 
-export type Context = {
-  call: ServerCall;
-  definition: MethodDefinition<unknown, unknown>;
-};
+type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
 
-export type Interceptor = (ctx: Context, next: Next) => void;
+export class Context {
+  public response: {
+    value?: unknown;
+    trailer?: Metadata;
+    flags?: number;
+  } = {};
+  constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
+  onFinished(listener: (...args: any[]) => void): void {
+    const emitter = this.call as EventEmitter;
+    emitter.on('finish', listener).on('error', listener);
+  }
+}
+
+export type Interceptor = (ctx: Context, next: Next) => Promise<void>;
 
 export default class ExperimentalServer extends Server {
   protected interceptors: Interceptor[] = [];
+  protected handleRequest?: Interceptor;
+
+  start() {
+    this.handleRequest = compose(this.interceptors);
+    super.start();
+  }
 
   // @ts-ignore
   addService<ImplementationType extends UntypedServiceImplementation>(
@@ -53,64 +72,57 @@ export default class ExperimentalServer extends Server {
     super.addService<ImplementationType>(service, newImpletations);
   }
 
-  createHandleCall(
-    original: handleCall<unknown, unknown>,
-    definition: MethodDefinition<unknown, unknown>
-  ) {
-    return (call: ServerCall, grpcCallback: unknown): void => {
-      const ctx: Context = { call, definition };
-      const interceptors = this.intercept();
-
-      // start to run interceptors
-      const { value: first } = interceptors.next();
-      if (!first) {
-        // no interceptors
-        // @ts-ignore
-        original(call, grpcCallback);
-        return;
-      }
-
-      first(ctx, function next() {
-        const { done, value } = interceptors.next();
-        if (done) {
-          // unary call
-          if (grpcCallback) {
-            return new Promise((resolve, reject) => {
-              // @ts-ignore
-              original(call, (error, response, ...args) => {
-                (grpcCallback as sendUnaryData<unknown>)(
-                  error,
-                  response,
-                  ...args
-                );
-                if (error) {
-                  reject(error);
-                  return;
-                }
-                resolve(response);
-              });
-            });
-          }
-
-          // @ts-ignore
-          original(call);
-          return;
-        }
-        // run another interceptor
-        return value(ctx, next);
-      });
-    };
-  }
-
   use(fn: Interceptor): void {
     this.interceptors.push(fn);
   }
 
-  protected *intercept(): Generator {
-    let i = 0;
-    while (i < this.interceptors.length) {
-      yield this.interceptors[i];
-      i++;
-    }
+  protected createHandleCall(
+    original: handleCall<unknown, unknown>,
+    definition: MethodDefinition<unknown, unknown>
+  ) {
+    return (call: ServerCall, grpcCallback?: sendUnaryData<unknown>): void => {
+      if (!this.handleRequest) throw new Error("gRPC server hanven't start");
+
+      const ctx = new Context(call, definition);
+
+      const pending = this.handleRequest(ctx, async () => {
+        // unary call
+        if (grpcCallback) {
+          const nonStreamCall = call as ServerNonStreamCall;
+          return new Promise((resolve, reject) => {
+            const callback: sendUnaryData<unknown> = (error, value, trailer, flags) => {
+              if (error) return reject(error);
+              ctx.response = { ...ctx.response, value, trailer, flags };
+              resolve();
+            };
+            // @ts-ignore
+            original(nonStreamCall, callback);
+          });
+        }
+
+        // @ts-ignore
+        original(call);
+        return;
+      });
+      if (grpcCallback) {
+        pending
+          .then(() => {
+            const {
+              response: { value, trailer, flags },
+            } = ctx;
+            // real send response
+            grpcCallback(null, value, trailer, flags);
+            (call as EventEmitter).emit('finish');
+          })
+          .catch(error => {
+            grpcCallback(error, null);
+            (call as EventEmitter).emit('finish', error);
+          });
+      }
+    };
+  }
+
+  protected handleError(call: unknown, error: Error) {
+    (call as EventEmitter).emit('error', error);
   }
 }

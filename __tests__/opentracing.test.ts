@@ -8,17 +8,17 @@ import { Point } from './fixtures/static_codegen/route_guide_pb';
 describe('opentracing', () => {
   const tracer = initTracer({ serviceName: 'grpc-exp-server' }, {});
 
-  describe('start span', () => {
+  describe('start span witout parent', () => {
     runTest({
       testcase(getServer, client) {
-        it('without parent', done => {
+        it('report span on finished', done => {
           const server = getServer();
           server.use(opentracing());
-
-          server.use(async ({ call: { span } }, next) => {
+          server.use(async ({ call }, next) => {
+            const span = call.span as Span;
             expect(span).toBeInstanceOf(Span);
+            span.finish = done;
             await next();
-            done();
           });
 
           // @ts-ignore
@@ -28,10 +28,10 @@ describe('opentracing', () => {
     });
   });
 
-  describe('start span ', () => {
+  describe('start span with parent', () => {
     runTest({
       testcase(getServer, client) {
-        it('with parent', done => {
+        it('chain on parent', done => {
           const metadata = new Metadata();
           const prx = new Proxy(metadata, {
             set(target, key: string, value) {
@@ -43,9 +43,11 @@ describe('opentracing', () => {
           tracer.inject(clientSpan, FORMAT_HTTP_HEADERS, prx);
 
           const server = getServer();
-          server.use(opentracing({ tracer }));
 
-          server.use(async ({ call: { span } }, next) => {
+          server.use(async ({ call }, next) => {
+            await next();
+
+            const { span } = call;
             expect(span).not.toBeUndefined();
 
             const context = (span as Span).context();
@@ -57,9 +59,9 @@ describe('opentracing', () => {
             // not empty
             expect(parentIdStr).toEqual(spanIdStr);
 
-            await next();
             done();
           });
+          server.use(opentracing({ tracer }));
 
           // @ts-ignore
           client().getFeature(new Point(), metadata, () => {});

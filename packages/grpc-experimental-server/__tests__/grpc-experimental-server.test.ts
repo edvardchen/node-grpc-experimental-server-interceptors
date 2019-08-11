@@ -1,16 +1,19 @@
 import {
   ServerUnaryCall,
   sendUnaryData,
-  handleUnaryCall,
   ServerWriteableStream,
   ServiceError,
   status,
+  handleUnaryCall,
 } from 'grpc';
-import { Point, Feature, Rectangle } from './fixtures/static_codegen/route_guide_pb';
+import {
+  Point,
+  Feature,
+  Rectangle,
+} from '../../../__tests__/fixtures/static_codegen/route_guide_pb';
+import runTest from '../../../__tests__/helpers/runTest';
 
-import runTest from './helpers/runTest';
-
-describe('server', () => {
+describe('grpc-experimental-server', () => {
   describe('should not timeout', () => {
     runTest({
       implementations: {

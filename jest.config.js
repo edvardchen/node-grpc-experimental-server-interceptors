@@ -60,7 +60,13 @@ module.exports = {
   // A set of global variables that need to be available in all test environments
   globals: {
     'ts-jest': {
-      tsConfig: '__tests__/tsconfig.json',
+      tsConfig: {
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        noImplicitAny: false,
+        noUnusedLocals: false,
+        allowJs: true,
+      },
     },
   },
 

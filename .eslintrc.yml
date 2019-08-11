@@ -18,6 +18,8 @@ rules:
   '@typescript-eslint/explicit-member-accessibility':
     - 1
     - accessibility: no-public
+      overrides:
+        parameterProperties: 'explicit'
   '@typescript-eslint/no-parameter-properties': 0
   '@typescript-eslint/explicit-function-return-type':
     - 1
@@ -29,7 +31,7 @@ rules:
     - argsIgnorePattern: ^_|ignore
       varsIgnorePattern: ^_|ignore
 overrides:
-  - files: __tests__/**
+  - files: '**/__tests__/**'
     rules:
       no-console: 0
     env:

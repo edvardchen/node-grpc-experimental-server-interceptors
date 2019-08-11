@@ -1,11 +1,12 @@
-import { initTracer } from 'jaeger-client';
-import runTest from './helpers/runTest';
 import { Metadata } from 'grpc';
-import { opentracing } from '../src';
+import { initTracer } from 'jaeger-client';
 import { Span, FORMAT_HTTP_HEADERS } from 'opentracing';
-import { Point } from './fixtures/static_codegen/route_guide_pb';
 
-describe('opentracing', () => {
+import grpcInterceptorOpentracing from '../src';
+import runTest from '../../../__tests__/helpers/runTest';
+import { Point } from '../../../__tests__/fixtures/static_codegen/route_guide_pb';
+
+describe('grpc-interceptor-opentracing', () => {
   const tracer = initTracer({ serviceName: 'grpc-exp-server' }, {});
 
   describe('start span witout parent', () => {
@@ -13,7 +14,7 @@ describe('opentracing', () => {
       testcase(getServer, client) {
         it('report span on finished', done => {
           const server = getServer();
-          server.use(opentracing());
+          server.use(grpcInterceptorOpentracing());
           server.use(async ({ call }, next) => {
             const span = call.span as Span;
             expect(span).toBeInstanceOf(Span);
@@ -61,7 +62,7 @@ describe('opentracing', () => {
 
             done();
           });
-          server.use(opentracing({ tracer }));
+          server.use(grpcInterceptorOpentracing({ tracer }));
 
           // @ts-ignore
           client().getFeature(new Point(), metadata, () => {});

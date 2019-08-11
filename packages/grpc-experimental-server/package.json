@@ -1,0 +1,39 @@
+{
+  "name": "ges",
+  "version": "0.0.0",
+  "description": "gRPC experimental server that support koa-like interceptor",
+  "keywords": [
+    "grpc",
+    "koa",
+    "interceptor",
+    "server"
+  ],
+  "author": "edvardchen",
+  "homepage": "https://github.com/edvardchen/node-grpc-experimental-server-interceptors/tree/master/packages/grpc-experimental-server#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edvardchen/node-grpc-experimental-server-interceptors.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/edvardchen/node-grpc-experimental-server-interceptors/issues"
+  },
+  "dependencies": {
+    "grpc": "^1.22.2",
+    "koa-compose": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/koa-compose": "^3.2.4"
+  }
+}

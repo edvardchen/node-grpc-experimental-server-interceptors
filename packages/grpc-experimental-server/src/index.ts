@@ -25,13 +25,13 @@ type ServerCall =
 type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
 
 export class Context {
-  public response: {
+  response: {
     value?: unknown;
     trailer?: Metadata;
     flags?: number;
   } = {};
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
-  onFinished(listener: (...args: any[]) => void): void {
+  onFinished(listener: (...args: unknown[]) => void): void {
     const emitter = this.call as EventEmitter;
     emitter.on('finish', listener).on('error', listener);
   }
@@ -43,7 +43,7 @@ export default class ExperimentalServer extends Server {
   protected interceptors: Interceptor[] = [];
   protected handleRequest?: Interceptor;
 
-  start() {
+  start(): void {
     this.handleRequest = compose(this.interceptors);
     super.start();
   }
@@ -122,7 +122,7 @@ export default class ExperimentalServer extends Server {
     };
   }
 
-  protected handleError(call: unknown, error: Error) {
+  protected handleError(call: unknown, error: Error): void {
     (call as EventEmitter).emit('error', error);
   }
 }

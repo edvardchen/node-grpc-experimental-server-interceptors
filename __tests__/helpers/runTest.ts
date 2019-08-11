@@ -1,13 +1,9 @@
-import {
-  UntypedServiceImplementation,
-  Client,
-  ServerCredentials,
-  credentials,
-} from 'grpc';
-import { ExperimentalServer } from '../../src';
+import { UntypedServiceImplementation, Client, ServerCredentials, credentials } from 'grpc';
+import ExperimentalServer from '../../packages/grpc-experimental-server';
 import {
   RouteGuideService,
   RouteGuideClient,
+  // @ts-ignore
 } from '../fixtures/static_codegen/route_guide_grpc_pb';
 
 // method hubs
@@ -21,10 +17,7 @@ export default function runTest({
   testcase,
 }: {
   implementations?: UntypedServiceImplementation;
-  testcase: (
-    getServer: () => ExperimentalServer,
-    getClient: () => Client
-  ) => void;
+  testcase: (getServer: () => ExperimentalServer, getClient: () => Client) => void;
 }): void {
   let server: ExperimentalServer;
   let client: Client;
@@ -40,23 +33,16 @@ export default function runTest({
       ...implementations,
     });
 
-    server.bindAsync(
-      `0.0.0.0:${port}`,
-      ServerCredentials.createInsecure(),
-      error => {
-        if (error) {
-          return done(error);
-        }
-        server.start();
-
-        client = new RouteGuideClient(
-          `0.0.0.0:${port}`,
-          credentials.createInsecure()
-        );
-
-        done();
+    server.bindAsync(`0.0.0.0:${port}`, ServerCredentials.createInsecure(), error => {
+      if (error) {
+        return done(error);
       }
-    );
+      server.start();
+
+      client = new RouteGuideClient(`0.0.0.0:${port}`, credentials.createInsecure());
+
+      done();
+    });
   });
 
   afterAll(done => {

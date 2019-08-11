@@ -1,5 +1,5 @@
 import { Tracer, globalTracer, FORMAT_HTTP_HEADERS, Span, Tags } from 'opentracing';
-import { Interceptor } from '../server';
+import { Interceptor } from 'ges';
 
 declare module 'grpc' {
   interface ServerUnaryCall<RequestType> {

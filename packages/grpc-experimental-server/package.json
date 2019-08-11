@@ -1,6 +1,6 @@
 {
   "name": "ges",
-  "version": "0.0.0",
+  "version": "1.0.1",
   "description": "gRPC experimental server that support koa-like interceptor",
   "keywords": [
     "grpc",

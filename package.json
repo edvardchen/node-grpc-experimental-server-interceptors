@@ -4,6 +4,7 @@
   "description": "gRPC experimental server interceptors for Node.js",
   "private": true,
   "scripts": {
+    "bump": "lerna version --conventional-commits",
     "bootstrap": "lerna bootstrap --hoist",
     "prepublish": "npm run build",
     "build": "lerna exec --parallel -- tsc",

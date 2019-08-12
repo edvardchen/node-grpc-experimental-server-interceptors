@@ -22,6 +22,7 @@ server.use(async (context, next) => {
   try {
     await next();
   } finally {
+    // postprocess
     const costtime = Date.now() - start;
     console.log('costtime is', costtime);
     console.log('response is ', context.response); // value, trailer, flags

@@ -23,11 +23,11 @@
     "type": "git",
     "url": "git+https://github.com/edvardchen/node-grpc-experimental-server-interceptors.git"
   },
-  "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
-  },
   "bugs": {
     "url": "https://github.com/edvardchen/node-grpc-experimental-server-interceptors/issues"
+  },
+  "scripts": {
+    "prepublish": "tsc"
   },
   "dependencies": {
     "grpc": "^1.22.2",

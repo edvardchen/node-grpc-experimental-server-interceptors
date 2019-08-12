@@ -31,7 +31,7 @@ export class Context {
     flags?: number;
   } = {};
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
-  onFinished(listener: (...args: unknown[]) => void): void {
+  onFinished(listener: (err: Error | null) => void): void {
     const emitter = this.call as EventEmitter;
     emitter.on('finish', listener).on('error', listener);
   }

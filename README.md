@@ -5,7 +5,7 @@ Since gRPC Node.js don't support
 I attempt to implement the experimental feature in TypeScript.
 
 Inspired by
-[echo health team work](https://github.com/echo-health/node-grpc-interceptors), but implement with more friendly kos-like API.
+[echo health team work](https://github.com/echo-health/node-grpc-interceptors), but implement with more friendly koa-like API.
 
 > For client interceptors, please visit [the proposal](https://github.com/grpc/proposal/blob/master/L5-node-client-interceptors.md) and [source code in grpc](https://github.com/grpc/grpc-node/blob/master/packages/grpc-native-core/src/client_interceptors.js)
 
@@ -29,6 +29,7 @@ server.use(async (context, next) => {
   try {
     await next();
   } finally {
+    // postprocess
     const costtime = Date.now() - start;
     console.log('costtime is', costtime);
     console.log('response is ', context.response); // value, trailer, flags

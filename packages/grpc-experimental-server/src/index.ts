@@ -1,6 +1,5 @@
 import compose from 'koa-compose';
 import {
-  Metadata,
   Server,
   UntypedServiceImplementation,
   ServiceDefinition,
@@ -25,11 +24,7 @@ type ServerCall =
 type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
 
 export class Context {
-  response: {
-    value?: unknown;
-    trailer?: Metadata;
-    flags?: number;
-  } = {};
+  response: unknown;
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
   onFinished(listener: (err: Error | null) => void): void {
     const emitter = this.call as EventEmitter;
@@ -85,15 +80,24 @@ export default class ExperimentalServer extends Server {
 
       const ctx = new Context(call, definition);
 
-      const pending = this.handleRequest(ctx, async () => {
+      this.handleRequest(ctx, async () => {
         // unary call
         if (grpcCallback) {
           const nonStreamCall = call as ServerNonStreamCall;
           return new Promise((resolve, reject) => {
-            const callback: sendUnaryData<unknown> = (error, value, trailer, flags) => {
-              if (error) return reject(error);
-              ctx.response = { ...ctx.response, value, trailer, flags };
+            const callback: sendUnaryData<unknown> = (error, value, ...rest) => {
+              if (error) {
+                grpcCallback(error, value);
+                reject(error);
+                (call as EventEmitter).emit('finish', error);
+                return;
+              }
+
+              // REAL SEND RESPONSE
+              grpcCallback(null, value, ...rest);
+              ctx.response = value;
               resolve();
+              (call as EventEmitter).emit('finish');
             };
             // @ts-ignore
             original(nonStreamCall, callback);
@@ -104,21 +108,6 @@ export default class ExperimentalServer extends Server {
         original(call);
         return;
       });
-      if (grpcCallback) {
-        pending
-          .then(() => {
-            const {
-              response: { value, trailer, flags },
-            } = ctx;
-            // real send response
-            grpcCallback(null, value, trailer, flags);
-            (call as EventEmitter).emit('finish');
-          })
-          .catch(error => {
-            grpcCallback(error, null);
-            (call as EventEmitter).emit('finish', error);
-          });
-      }
     };
   }
 

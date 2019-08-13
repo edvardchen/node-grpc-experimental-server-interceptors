@@ -72,7 +72,7 @@ describe('grpc-experimental-server', () => {
     });
     runTest({
       implementations: {
-        async getFeature(call, callback) {
+        getFeature(call: ServerUnaryCall<unknown>, callback: sendUnaryData<unknown>) {
           const error: ServiceError = new Error('unexpected');
           error.code = status.PERMISSION_DENIED;
           callback(error, new Feature());
@@ -83,10 +83,14 @@ describe('grpc-experimental-server', () => {
           let finished = false;
           server().use(async (ctx, next) => {
             ctx.onFinished(error => {
-              expect(error).toBeInstanceOf(Error);
+              try {
+                expect(error).toBeInstanceOf(Error);
+              } catch (e) {
+                done(e);
+              }
               finished = true;
             });
-            await next();
+            next().catch(() => undefined);
           });
           // @ts-ignore
           client().getFeature(new Point(), () => {
@@ -101,10 +105,11 @@ describe('grpc-experimental-server', () => {
   describe('postprocess', () => {
     runTest({
       testcase(server, client) {
-        it('should get Feature', () => {
+        it('should get Feature', done => {
           server().use(async (ctx, next) => {
             await next();
-            expect(ctx.response.value).toBeInstanceOf(Feature);
+            expect(ctx.response).toBeInstanceOf(Feature);
+            done();
           });
 
           // @ts-ignore

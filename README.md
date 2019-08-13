@@ -46,7 +46,7 @@ server.start();
 
 ## Design decision
 
-As soon as (grpc-node)[https://github.com/grpc/grpc-node] supports server interceptors, **official solution should be drop in replacement of this repository**.
+As soon as [grpc-node](https://github.com/grpc/grpc-node) supports server interceptors, **official solution should be drop in replacement of this repository**.
 
 ### Simulate go implementation
 

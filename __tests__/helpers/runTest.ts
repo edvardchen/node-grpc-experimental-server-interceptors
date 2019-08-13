@@ -1,5 +1,5 @@
 import { UntypedServiceImplementation, Client, ServerCredentials, credentials } from 'grpc';
-import ExperimentalServer from '../../packages/grpc-experimental-server';
+import ExperimentalServer from '../../packages/grpc-experimental-server/src';
 import {
   RouteGuideService,
   RouteGuideClient,

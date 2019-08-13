@@ -22,6 +22,8 @@ import ExperimentalServer from 'ges';
 
 const server = new ExperimentalServer();
 
+server.addService(GreeterService, { sayHello });
+
 // add interceptor
 server.use(async (context, next) => {
   // preprocess
@@ -32,7 +34,7 @@ server.use(async (context, next) => {
     // postprocess
     const costtime = Date.now() - start;
     console.log('costtime is', costtime);
-    console.log('response is ', context.response); // value, trailer, flags
+    console.log('response is ', context.response);
   }
 });
 
@@ -40,11 +42,39 @@ serer.bind(/* ... */);
 server.start();
 ```
 
+[Server API details here](./packages/grpc-experimental-server/README.md)
+
+## Design decision
+
+As soon as (grpc-node)[https://github.com/grpc/grpc-node] supports server interceptors, **official solution should be drop in replacement of this repository**.
+
+### Simulate go implementation
+
+So I would make the interceptor mechanism as close as current [go interceptor implementation](https://github.com/grpc/grpc-go/tree/master/examples/features/interceptor).
+
+### Non-Intrusive API
+
 `ExperimentalServer` is inherited from the original [grpc Server]. So you still can access all api exposed by [grpc Server].
 
 > You can treat `ExperimentalServer` as original server if you don't add any interceptor. I believe it don't have any performance effect.
 
-[Server API details here](./packages/grpc-experimental-server/README.md)
+**`server.use` is the only one extent API.**
+
+Unlike [mali](https://github.com/malijs/mali),
+you don't need to change server method implementation handler. You should even notice interceptors exist
+
+```typescript
+// mali way
+async function sayHello(ctx) {
+  ctx.res = { message: 'Hello '.concat(ctx.req.name) };
+}
+
+// grpc original handler just works
+function sayHello(call: ServerUnaryCall<HelloRequest>, callback: sendUnaryData<unknown>): void {
+  const reply = new HelloReply();
+  callback(null, reply);
+}
+```
 
 ## Interceptors
 

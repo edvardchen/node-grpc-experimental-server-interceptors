@@ -25,7 +25,7 @@ server.use(async (context, next) => {
     // postprocess
     const costtime = Date.now() - start;
     console.log('costtime is', costtime);
-    console.log('response is ', context.response); // value, trailer, flags
+    console.log('unary response is ', context.response);
   }
 });
 
@@ -47,9 +47,6 @@ server.start();
 - `call` current gRPC call
 - `definition` the method definition of current call
 - `response` response if response is not `stream`
-  - value
-  - trailer
-  - flags
 - `onFinished(...)` you can listen on call finish event, no matter response of current call is stream or not. So you don't need to care about what kind is the call. **It is very useful to do something like `tracing`, `logging`**
 
 ## Notes

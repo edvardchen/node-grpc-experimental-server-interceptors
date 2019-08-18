@@ -5,7 +5,7 @@ gRPC experimental server that supports koa-like interceptors
 ## Usage
 
 ```bash
-npm i ges
+npm i ges grpc
 ```
 
 ```javascript

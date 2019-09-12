@@ -22,6 +22,10 @@ declare module 'grpc' {
  */
 export default function opentracing(options?: { tracer?: Tracer }): Interceptor {
   return async (ctx, next) => {
+    if (ctx.call.span) {
+      return next();
+    }
+
     const {
       call,
       definition: { path },

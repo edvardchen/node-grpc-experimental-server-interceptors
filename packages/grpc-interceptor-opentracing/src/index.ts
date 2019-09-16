@@ -5,7 +5,7 @@ declare module 'grpc' {
   interface ServerUnaryCall<RequestType> {
     span?: Span;
   }
-  interface ServerWriteableStream<RequestType> {
+  interface ServerWritableStream<RequestType> {
     span?: Span;
   }
   interface ServerReadableStream<RequestType> {

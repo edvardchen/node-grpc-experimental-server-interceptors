@@ -7,9 +7,9 @@ import {
   handleCall,
   MethodDefinition,
   ServerReadableStream,
-  ServerWriteableStream,
   ServerDuplexStream,
   ServerUnaryCall,
+  ServerWritableStream,
 } from 'grpc';
 import { EventEmitter } from 'events';
 
@@ -18,7 +18,7 @@ type Next = (error?: Error) => Promise<any>;
 
 type ServerCall =
   | ServerNonStreamCall
-  | ServerWriteableStream<unknown>
+  | ServerWritableStream<unknown>
   | ServerDuplexStream<unknown, unknown>;
 
 type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
@@ -43,28 +43,26 @@ export default class ExperimentalServer extends Server {
     super.start();
   }
 
-  // @ts-ignore
-  addService<ImplementationType extends UntypedServiceImplementation>(
+  addService<ImplementationType = UntypedServiceImplementation>(
     service: ServiceDefinition<ImplementationType>,
     implementations: ImplementationType
   ): void {
     const server = this;
 
-    // @ts-ignore
-    const newImpletations: ImplementationType = {};
+    let newImpletations: Partial<ImplementationType> = {};
 
-    Object.keys(implementations).forEach(key => {
+    for (let key in implementations) {
       const original = implementations[key];
       const def = service[key];
-
       // make sure it is method handler
       if (def && def.path && typeof original === 'function') {
-        // @ts-ignore
-        newImpletations[key] = server.createHandleCall(original, def);
+        newImpletations = {
+          ...newImpletations,
+          [key]: server.createHandleCall(original as any, def),
+        };
       }
-    });
-
-    super.addService<ImplementationType>(service, newImpletations);
+    }
+    super.addService(service, newImpletations);
   }
 
   use(fn: Interceptor): void {

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "bump": "lerna version --conventional-commits",
+    "release": "lerna publish from-package",
     "bootstrap": "lerna bootstrap --hoist",
     "prepublish": "npm run build",
     "build": "lerna exec --parallel -- tsc",

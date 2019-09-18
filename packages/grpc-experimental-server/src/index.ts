@@ -28,7 +28,7 @@ export class Context {
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
   onFinished(listener: (err: Error | null) => void): void {
     const emitter = this.call as EventEmitter;
-    emitter.on('finish', listener).on('error', listener);
+    emitter.once('finish', listener).once('error', listener);
   }
 }
 

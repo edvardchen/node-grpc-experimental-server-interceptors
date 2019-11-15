@@ -29,11 +29,8 @@
   "scripts": {
     "prepublish": "tsc"
   },
-  "dependencies": {
-    "opentracing": "^0.14.4"
-  },
   "peerDependencies": {
-    "ges": "^1.0.1"
+    "opentracing": "^0.14.4"
   },
   "devDependencies": {
     "@types/jaeger-client": "^3.15.1",

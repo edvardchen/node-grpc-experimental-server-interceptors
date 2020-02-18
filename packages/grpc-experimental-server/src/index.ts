@@ -78,7 +78,9 @@ export default class ExperimentalServer extends Server {
 
       const ctx = new Context(call, definition);
 
+      let handled = false;
       this.handleRequest(ctx, async () => {
+        handled = true;
         // unary call
         if (grpcCallback) {
           const nonStreamCall = call as ServerNonStreamCall;
@@ -102,9 +104,20 @@ export default class ExperimentalServer extends Server {
           });
         }
 
+        // server stream request
         // @ts-ignore
         original(call);
-        return;
+      }).catch(e => {
+        // error happened before processing
+        if (!handled) {
+          if (grpcCallback) {
+            // @ts-ignore
+            grpcCallback(e);
+          } else {
+            (call as ServerWritableStream<unknown>).emit('error', e);
+          }
+        }
+        // ignore post-process error
       });
     };
   }

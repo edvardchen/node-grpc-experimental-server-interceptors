@@ -12,6 +12,9 @@ import {
   Rectangle,
 } from '../../../__tests__/fixtures/static_codegen/route_guide_pb';
 import runTest from '../../../__tests__/helpers/runTest';
+import { ClientReadableStream } from 'grpc';
+import { createInterface } from 'readline';
+import { ClientWritableStream } from 'grpc';
 
 describe('grpc-experimental-server', () => {
   describe('should not timeout', () => {
@@ -102,6 +105,27 @@ describe('grpc-experimental-server', () => {
     });
   });
 
+  describe('server stream', () => {
+    runTest({
+      testcase(server, client) {
+        it('server stream', done => {
+          // @ts-ignore
+          const call = client().listFeatures(new Rectangle()) as ClientReadableStream<Feature>;
+          // trigger client to read stream
+          call.on('data', () => {});
+          call.on('end', done);
+        });
+
+        it('client stream', done => {
+          // @ts-ignore
+          const call = client().recordRoute(done) as ClientWritableStream<Point>;
+          call.write(new Point());
+          call.end();
+        });
+      },
+    });
+  });
+
   describe('postprocess', () => {
     runTest({
       testcase(server, client) {
@@ -134,12 +158,73 @@ describe('grpc-experimental-server', () => {
             next().catch(e => {
               expect(e.code).toEqual(status.PERMISSION_DENIED);
               expect(e.message).toEqual('unexpected');
-              done();
             });
           });
 
           // @ts-ignore
-          client().getFeature(new Point(), () => {});
+          client().getFeature(new Point(), e => {
+            expect(e.code).toEqual(status.PERMISSION_DENIED);
+            expect(e.details).toEqual('unexpected');
+            done();
+          });
+        });
+      },
+    });
+  });
+
+  describe('capture pre-process error', () => {
+    runTest({
+      testcase(server, client) {
+        beforeAll(() => {
+          server().use(async (ctx, next) => {
+            throw new Error('pre-process');
+          });
+        });
+        it('getFeature', done => {
+          // @ts-ignore
+          client().getFeature(new Point(), error => {
+            expect(error.details).toEqual('pre-process');
+            done();
+          });
+        });
+        it('listFeatures', done => {
+          // @ts-ignore
+          const call = client().listFeatures(new Rectangle()) as ClientReadableStream<Feature>;
+          // trigger client to read stream
+          call.on('data', () => {});
+          call.on('error', (e: any) => {
+            expect(e.details).toEqual('pre-process');
+            done();
+          });
+        });
+      },
+    });
+  });
+
+  describe('ignore post-process error', () => {
+    runTest({
+      testcase(server, client) {
+        beforeAll(() => {
+          server().use(async (ctx, next) => {
+            await next();
+            throw new Error('post-process');
+          });
+        });
+
+        it('getFeature', done => {
+          // @ts-ignore
+          client().getFeature(new Point(), error => {
+            expect(error).toEqual(null);
+            done();
+          });
+        });
+
+        it('listFeatures', done => {
+          // @ts-ignore
+          const call = client().listFeatures(new Rectangle()) as ClientReadableStream<Feature>;
+          // trigger client to read stream
+          call.on('data', () => {});
+          call.on('end', done);
         });
       },
     });

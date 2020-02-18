@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.3.0](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.2.3...v1.3.0) (2020-02-18)
+
+
+### Features
+
+* **ges:** handle pre-porcess error ([646171b](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/commit/646171b2f6a6d0051146ec31e405bde6cd0e25be))
+
+
+
+
+
 ## [1.2.2](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.2.1...v1.2.2) (2019-09-18)
 
 

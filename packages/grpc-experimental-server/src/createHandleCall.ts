@@ -23,29 +23,23 @@ export default function createHandleCall(
 
     // indicated if request had beed handled
     let handled = false;
-    interceptor(ctx, async error => {
+    interceptor(ctx, async () => {
       // the real business process
 
       handled = true;
       // unary call
       if (grpcCallback) {
         const nonStreamCall = call as ServerUnaryCall<unknown>;
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
           const callback: sendUnaryData<unknown> = (error, value, ...rest) => {
-            if (error) {
-              grpcCallback(error, value);
-              reject(error);
-
-              // always emit finish
-              (call as EventEmitter).emit('finish', error);
-              return;
-            }
-
             // REAL SEND RESPONSE
-            grpcCallback(null, value, ...rest);
+            grpcCallback(error, value, ...rest);
+            ctx.error = error;
             ctx.response = value;
+            // always resolve
             resolve();
-            (call as EventEmitter).emit('finish');
+            // always emit finish
+            (call as EventEmitter).emit('finish', error);
           };
           // @ts-ignore
           original(nonStreamCall, callback);

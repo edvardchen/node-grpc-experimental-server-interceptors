@@ -45,7 +45,7 @@ describe('grpc-interceptor-opentracing', () => {
     });
   });
 
-  describe.skip('start span with parent', () => {
+  describe('start span with parent', () => {
     it('chain on parent', async () => {
       const metadata = new Metadata();
       const prx = new Proxy(metadata, {

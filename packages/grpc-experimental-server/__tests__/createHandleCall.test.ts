@@ -107,27 +107,6 @@ describe('createHandleCall', () => {
 
       await unaryCallThenShutdown(client, server, 'getFeature');
     });
-
-    it('capture error', async () => {
-      const server = startServer(pbFile, serviceName, port, {
-        GetFeature: createHandleCall(
-          (call: ServerUnaryCall<unknown>, callback: sendUnaryData<unknown>) => {
-            const error: ServiceError = new Error('unexpected');
-            error.code = status.PERMISSION_DENIED;
-            callback(error, {});
-          },
-          // @ts-ignore
-          pkgDef.routeguide.RouteGuide,
-          async (ctx, next) => {
-            next().catch(e => {
-              expect(e.code).toEqual(status.PERMISSION_DENIED);
-              expect(e.message).toEqual('unexpected');
-            });
-          }
-        ),
-      });
-      await unaryCallThenShutdown(client, server, 'getFeature').catch(() => undefined);
-    });
   });
 
   describe('capture pre-process error', () => {

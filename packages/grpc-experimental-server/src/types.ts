@@ -8,7 +8,8 @@ export type Next = (error?: Error) => Promise<any>;
 export type ServerCall = ServerUnaryCall<any> | ServerWritableStream<any>;
 
 export class Context {
-  response: unknown;
+  response?: unknown;
+  error: Error | null = null;
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
   onFinished(listener: (err: Error | null) => void): void {
     const emitter = this.call as EventEmitter;

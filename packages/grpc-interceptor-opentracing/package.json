@@ -1,6 +1,6 @@
 {
   "name": "grpc-interceptor-opentracing",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0-alpha.2",
   "description": "gRPC interceptor opentracing",
   "keywords": [
     "grpc",
@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@types/jaeger-client": "^3.15.1",
-    "ges": "^2.0.0-alpha.1",
+    "ges": "^2.0.0-alpha.2",
     "grpc": "^1.22.2",
     "jaeger-client": "^3.15.0"
   }

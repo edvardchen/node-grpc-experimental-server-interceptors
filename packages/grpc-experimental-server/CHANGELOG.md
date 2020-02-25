@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.2](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2020-02-25)
+
+
+### Features
+
+* **ges:** still emit finish when error happens during pre-processing ([6da5e9c](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/commit/6da5e9ca0ce2b32f22b390141f705ef91b201945))
+
+
+
+
+
 # [2.0.0-alpha.1](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v2.0.0-alpha.0...v2.0.0-alpha.1) (2020-02-25)
 
 

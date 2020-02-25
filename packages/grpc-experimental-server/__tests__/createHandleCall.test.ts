@@ -126,6 +126,27 @@ describe('createHandleCall', () => {
       );
     });
 
+    it('on finished', async () => {
+      let caughtError;
+      const server = startServer(pbFile, serviceName, port, {
+        GetFeature: createHandleCall(
+          defaultImplements.GetFeature,
+          // @ts-ignore
+          pkgDef.routeguide.RouteGuide,
+          async (ctx, next) => {
+            ctx.onFinished(error => {
+              caughtError = error;
+            });
+            throw new Error('pre-process');
+          }
+        ),
+      });
+      await expect(unaryCallThenShutdown(client, server, 'getFeature')).rejects.toThrow(
+        'pre-process'
+      );
+      expect(caughtError).toBeInstanceOf(Error);
+    });
+
     it('server stream', done => {
       const server = startServer(pbFile, serviceName, port, {
         ListFeatures: createHandleCall(

@@ -55,6 +55,8 @@ export default function createHandleCall(
         if (grpcCallback) {
           // @ts-ignore
           grpcCallback(e);
+          // always emit finish
+          (call as EventEmitter).emit('finish', e);
         } else {
           (call as ServerWritableStream<unknown>).emit('error', e);
         }

@@ -1,53 +1,45 @@
-import { UntypedServiceImplementation, Client, ServerCredentials, credentials } from 'grpc';
-import ExperimentalServer from '../../packages/grpc-experimental-server/src';
-import {
-  RouteGuideService,
-  RouteGuideClient,
-  // @ts-ignore
-} from '../fixtures/static_codegen/route_guide_grpc_pb';
+import lodash from 'lodash';
+import { UntypedServiceImplementation, Server, ServiceDefinition, ServerCredentials } from 'grpc';
+import ExperimentalServer, { Interceptor } from '../../packages/grpc-experimental-server/src';
+import { loadPB, randomPort, mockImplementations } from 'grpc-test-helper';
 
-// method hubs
-import getFeature from '../fixtures/RouteGuide/getFeature';
-import recordRoute from '../fixtures/RouteGuide/recordRoute';
-import routeChat from '../fixtures/RouteGuide/routeChat';
-import listFeatures from '../fixtures/RouteGuide/listFeatures';
-
-export default function runTest({
+export function startGes({
+  PBFile,
+  serviceName,
+  port = randomPort(),
   implementations,
-  testcase,
+  interceptors = [],
 }: {
+  PBFile: string;
+  serviceName: string;
+  port?: number;
   implementations?: UntypedServiceImplementation;
-  testcase: (getServer: () => ExperimentalServer, getClient: () => Client) => void;
-}): void {
-  let server: ExperimentalServer;
-  let client: Client;
-  beforeAll(done => {
-    const port = Math.floor(Math.random() * 1e4);
-    server = new ExperimentalServer();
+  interceptors?: Interceptor[];
+}) {
+  const server = new ExperimentalServer();
+  const pkgDef = loadPB(PBFile);
+  const Service = lodash.get(pkgDef, `${serviceName}.service`) as ServiceDefinition<any>;
 
-    server.addService(RouteGuideService, {
-      getFeature,
-      recordRoute,
-      listFeatures,
-      routeChat,
-      ...implementations,
-    });
-
-    server.bindAsync(`0.0.0.0:${port}`, ServerCredentials.createInsecure(), error => {
-      if (error) {
-        return done(error);
-      }
-      server.start();
-
-      client = new RouteGuideClient(`0.0.0.0:${port}`, credentials.createInsecure());
-
-      done();
-    });
+  server.addService(Service, {
+    ...mockImplementations(Service, implementations),
   });
 
-  afterAll(done => {
-    server.tryShutdown(done);
-  });
+  interceptors.forEach(item => server.use(item));
 
-  testcase(() => server, () => client);
+  const address = `localhost:${port}`;
+  const bound = server.bind(address, ServerCredentials.createInsecure());
+  if (!bound) throw new Error('serer start failed');
+  server.start();
+  return { server, port };
+}
+
+export function unaryCallThenShutdown(client: any, server: Server, method: string) {
+  return new Promise((resolve, reject) => {
+    client[method]({}, (error: Error, payload: any) => {
+      server.tryShutdown(() => {
+        if (error) return reject(error);
+        resolve(payload);
+      });
+    });
+  });
 }

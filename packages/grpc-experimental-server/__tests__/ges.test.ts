@@ -1,50 +1,27 @@
-import lodash from 'lodash';
 import path from 'path';
-import { ServerUnaryCall, sendUnaryData, Client, ClientReadableStream } from 'grpc';
-import { getClient, startServer, loadPB, mockImplementations } from 'grpc-test-helper';
-import ExperimentalServer from '../src';
-import { Server } from 'grpc';
-import { ServerCredentials } from 'grpc';
+import { ClientReadableStream } from 'grpc';
+import { getClient } from 'grpc-test-helper';
+import { startGes, unaryCallThenShutdown } from '../../../__tests__/helpers/runTest';
+import { Interceptor } from '../src/types';
 
 describe('ges', () => {
-  let client: Client;
-  let port: number;
   const pbFile = path.resolve(__dirname, '../../../__tests__/fixtures/protos/route_guide.proto');
-  const pkgDef = loadPB(pbFile);
   const serviceName = 'routeguide.RouteGuide';
-  beforeAll(() => {
-    port = Math.floor(Math.random() * 1e4);
-    client = getClient(pbFile, serviceName, port);
-  });
-
-  afterAll(() => {
-    client.close();
-  });
-
-  function unaryCallThenShutdown(client: any, server: Server, method: string) {
-    return new Promise((resolve, reject) => {
-      client[method]({}, (error: Error, payload: any) => {
-        server.tryShutdown(() => {
-          if (error) return reject(error);
-          resolve(payload);
-        });
-      });
-    });
-  }
 
   it('init ges', async () => {
-    const server = new ExperimentalServer();
-    const serviceDef = lodash.get(pkgDef, 'routeguide.RouteGuide.service') as any;
     let run = false;
-    server.use(async (ctx, next) => {
-      run = true;
-      await next();
+    const { server, port } = startGes({
+      PBFile: pbFile,
+      serviceName,
+      interceptors: [
+        (async (ctx, next) => {
+          run = true;
+          await next();
+        }) as Interceptor,
+      ],
     });
-    server.addService(serviceDef, mockImplementations(serviceDef));
 
-    server.bind(`localhost:${port}`, ServerCredentials.createInsecure());
-
-    server.start();
+    const client = getClient(pbFile, serviceName, port);
 
     await new Promise(resolve => {
       const call = (client as any).listFeatures({}) as ClientReadableStream<unknown>;

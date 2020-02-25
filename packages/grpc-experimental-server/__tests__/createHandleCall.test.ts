@@ -3,7 +3,7 @@ import path from 'path';
 import { ServerUnaryCall, status, sendUnaryData, Client, ServiceError } from 'grpc';
 import { getClient, startServer, loadPB, mockImplementations } from 'grpc-test-helper';
 import { createHandleCall } from '../src';
-import { Server } from 'grpc';
+import { unaryCallThenShutdown } from '../../../__tests__/helpers/runTest';
 
 describe('createHandleCall', () => {
   let client: Client;
@@ -23,17 +23,6 @@ describe('createHandleCall', () => {
   afterAll(() => {
     client.close();
   });
-
-  function unaryCallThenShutdown(client: any, server: Server, method: string) {
-    return new Promise((resolve, reject) => {
-      client[method]({}, (error: Error, payload: any) => {
-        server.tryShutdown(() => {
-          if (error) return reject(error);
-          resolve(payload);
-        });
-      });
-    });
-  }
 
   it('interceptor missing', () => {
     expect(
@@ -77,8 +66,9 @@ describe('createHandleCall', () => {
       await unaryCallThenShutdown(client, server, 'getFeature');
       expect(finished).toBe(true);
     });
-    it('capture error', async done => {
+    it('capture error', async () => {
       let finished = false;
+      let caughtError;
       const server = startServer(pbFile, serviceName, port, {
         GetFeature: createHandleCall(
           (call: ServerUnaryCall<unknown>, callback: sendUnaryData<unknown>) => {
@@ -89,11 +79,7 @@ describe('createHandleCall', () => {
           async (ctx, next) => {
             ctx.onFinished(error => {
               finished = true;
-              try {
-                expect(error).toBeInstanceOf(Error);
-              } catch (e) {
-                done(e);
-              }
+              caughtError = error;
             });
             await next();
           }
@@ -101,7 +87,7 @@ describe('createHandleCall', () => {
       });
       await expect(unaryCallThenShutdown(client, server, 'getFeature')).rejects.toThrow('hell');
       expect(finished).toBe(true);
-      done();
+      expect(caughtError).toBeInstanceOf(Error);
     });
   });
 

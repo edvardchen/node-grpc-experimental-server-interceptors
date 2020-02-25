@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.0](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.3.0...v2.0.0-alpha.0) (2020-02-25)
+
+**Note:** Version bump only for package grpc-interceptor-opentracing
+
+
+
+
+
 # [1.3.0](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.2.3...v1.3.0) (2020-02-18)
 
 **Note:** Version bump only for package grpc-interceptor-opentracing

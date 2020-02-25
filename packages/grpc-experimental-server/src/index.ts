@@ -3,36 +3,16 @@ import {
   Server,
   UntypedServiceImplementation,
   ServiceDefinition,
-  sendUnaryData,
   handleCall,
   MethodDefinition,
-  ServerReadableStream,
-  ServerDuplexStream,
-  ServerUnaryCall,
-  ServerWritableStream,
 } from 'grpc';
-import { EventEmitter } from 'events';
+import { Interceptor } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Next = (error?: Error) => Promise<any>;
+import createHandleCall from './createHandleCall';
 
-type ServerCall =
-  | ServerNonStreamCall
-  | ServerWritableStream<unknown>
-  | ServerDuplexStream<unknown, unknown>;
+export * from './types';
 
-type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
-
-export class Context {
-  response: unknown;
-  constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
-  onFinished(listener: (err: Error | null) => void): void {
-    const emitter = this.call as EventEmitter;
-    emitter.once('finish', listener).once('error', listener);
-  }
-}
-
-export type Interceptor = (ctx: Context, next: Next) => Promise<void>;
+export { createHandleCall };
 
 export default class ExperimentalServer extends Server {
   protected interceptors: Interceptor[] = [];
@@ -47,8 +27,6 @@ export default class ExperimentalServer extends Server {
     service: ServiceDefinition<ImplementationType>,
     implementations: ImplementationType
   ): void {
-    const server = this;
-
     let newImpletations: Partial<ImplementationType> = {};
 
     for (let key in implementations) {
@@ -58,7 +36,7 @@ export default class ExperimentalServer extends Server {
       if (def && def.path && typeof original === 'function') {
         newImpletations = {
           ...newImpletations,
-          [key]: server.createHandleCall(original as any, def),
+          [key]: this.createHandleCall(original as any, def),
         };
       }
     }
@@ -73,56 +51,17 @@ export default class ExperimentalServer extends Server {
     original: handleCall<unknown, unknown>,
     definition: MethodDefinition<unknown, unknown>
   ) {
-    return (call: ServerCall, grpcCallback?: sendUnaryData<unknown>): void => {
-      if (!this.handleRequest) throw new Error("gRPC server hanven't start");
+    let cached: Function;
+    return (call: any, grpcCallback: any) => {
+      if (!this.handleRequest) {
+        // not happen in real world
+        throw new Error("gRPC server haven't start yet");
+      }
 
-      const ctx = new Context(call, definition);
-
-      let handled = false;
-      this.handleRequest(ctx, async () => {
-        handled = true;
-        // unary call
-        if (grpcCallback) {
-          const nonStreamCall = call as ServerNonStreamCall;
-          return new Promise((resolve, reject) => {
-            const callback: sendUnaryData<unknown> = (error, value, ...rest) => {
-              if (error) {
-                grpcCallback(error, value);
-                reject(error);
-                (call as EventEmitter).emit('finish', error);
-                return;
-              }
-
-              // REAL SEND RESPONSE
-              grpcCallback(null, value, ...rest);
-              ctx.response = value;
-              resolve();
-              (call as EventEmitter).emit('finish');
-            };
-            // @ts-ignore
-            original(nonStreamCall, callback);
-          });
-        }
-
-        // server stream request
-        // @ts-ignore
-        original(call);
-      }).catch(e => {
-        // error happened before processing
-        if (!handled) {
-          if (grpcCallback) {
-            // @ts-ignore
-            grpcCallback(e);
-          } else {
-            (call as ServerWritableStream<unknown>).emit('error', e);
-          }
-        }
-        // ignore post-process error
-      });
+      if (!cached) {
+        cached = createHandleCall(original, definition, this.handleRequest);
+      }
+      return cached(call, grpcCallback);
     };
-  }
-
-  protected handleError(call: unknown, error: Error): void {
-    (call as EventEmitter).emit('error', error);
   }
 }

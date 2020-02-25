@@ -11,7 +11,7 @@
     "build": "lerna exec --parallel -- tsc",
     "lint": "lerna exec --parallel -- 'eslint src --ext ts && tsc --noEmit'",
     "pretest": "npm run lint",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "repository": {
     "type": "git",
@@ -38,13 +38,16 @@
     "eslint": "^5.9.0",
     "eslint-config-prettier": "^4.3.0",
     "google-protobuf": "^3.9.0",
+    "grpc-test-helper": "^1.1.0",
     "husky": "^1.2.0",
     "jaeger-client": "^3.15.0",
-    "jest": "^24.8.0",
+    "jest": "^25.1.0",
+    "jest-circus": "^25.1.0",
     "lerna": "^3.16.4",
     "lint-staged": "^8.1.0",
+    "lodash": "^4.17.15",
     "prettier": "^1.18.2",
-    "ts-jest": "^24.0.2",
+    "ts-jest": "^25.2.1",
     "typescript": "^3.5.1"
   },
   "husky": {

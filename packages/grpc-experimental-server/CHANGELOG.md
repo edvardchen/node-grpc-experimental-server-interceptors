@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.0.0-alpha.1](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v2.0.0-alpha.0...v2.0.0-alpha.1) (2020-02-25)
+
+
+### Features
+
+* always resolve for unaray handler ([b29ef29](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/commit/b29ef29a40de67391ab3e9c0e7ba9ddef351fc72))
+
+
+
+
+
 # [2.0.0-alpha.0](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.3.0...v2.0.0-alpha.0) (2020-02-25)
 
 **Note:** Version bump only for package ges

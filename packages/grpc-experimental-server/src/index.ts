@@ -23,6 +23,16 @@ type ServerCall =
 
 type ServerNonStreamCall = ServerUnaryCall<unknown> | ServerReadableStream<unknown>;
 
+// type guard for method definition with property 'originalName'
+const isDefinitionWithOriginalName = (def: any): def is { originalName: string } => {
+  return (
+    !!def &&
+    typeof def === 'object' &&
+    'originalName' in def &&
+    typeof def.originalName === 'string'
+  );
+};
+
 export class Context {
   response: unknown;
   constructor(public call: ServerCall, public definition: MethodDefinition<unknown, unknown>) {}
@@ -53,7 +63,13 @@ export default class ExperimentalServer extends Server {
 
     for (let key in implementations) {
       const original = implementations[key];
-      const def = service[key];
+      let def = service[key];
+      if (!def) {
+        // try to find method definition by original name
+        def = Object.values(service).find(
+          def => isDefinitionWithOriginalName(def) && def.originalName === key
+        );
+      }
       // make sure it is method handler
       if (def && def.path && typeof original === 'function') {
         newImpletations = {

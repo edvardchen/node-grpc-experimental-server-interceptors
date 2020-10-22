@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.1](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.3.0...v1.3.1) (2020-10-22)
+
+
+### Bug Fixes
+
+* fix typing error ([bed2082](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/commit/bed2082df3f95f9c9a797719f22b0bdf672ea48f))
+* **ges:** lookup definition by original name ([dc5a58b](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/commit/dc5a58b3c214fbcfd6313a6cf18e03441ad56c53))
+
+
+
+
+
 # [1.3.0](https://github.com/edvardchen/node-grpc-experimental-server-interceptors/compare/v1.2.3...v1.3.0) (2020-02-18)
 
 

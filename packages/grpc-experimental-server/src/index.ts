@@ -63,10 +63,10 @@ export default class ExperimentalServer extends Server {
 
     for (let key in implementations) {
       const original = implementations[key];
-      let def = service[key];
+      let def: MethodDefinition<any, any> | undefined = service[key];
       if (!def) {
         // try to find method definition by original name
-        def = Object.values(service).find(
+        def = (Object.values(service) as MethodDefinition<any, any>[]).find(
           def => isDefinitionWithOriginalName(def) && def.originalName === key
         );
       }
